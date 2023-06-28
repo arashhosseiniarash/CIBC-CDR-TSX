@@ -1,6 +1,7 @@
 import sqlite3
 import requests
-#shift F10
+import csv
+
 # Establish a connection to the SQLite database
 conn = sqlite3.connect('stock_market_one_month.db')
 cursor = conn.cursor()
@@ -18,29 +19,56 @@ cursor.execute('''
     )
 ''')
 
-# Make a request to the Alpha Vantage API to retrieve data
-url = 'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY&symbol=IBM&apikey=V79H8UJ4G6QJ1YPS'
-r = requests.get(url)
-data = r.json()  # Parse the JSON response into a Python dictionary
+# List of symbols to retrieve data for
+symbols = ["MSFT", "IBM"]
+api_key = "YOUR_API_KEY"  # Replace with your actual API key
 
-print(data)
+# Loop over each symbol
+for symbol in symbols:
+    # Make a request to the Alpha Vantage API to retrieve data
+    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY&symbol={symbol}&apikey=V79H8UJ4G6QJ1YPS'
+    r = requests.get(url)
+    data = r.json()
 
-## Extract relevant data from the API response to fill the database
-meta_data = data["Meta Data"]  # Access the list of data objects
-symbol = meta_data["2. Symbol"]  # Access the symbol within the data object
+    # Extract relevant data from the API response
+    meta_data = data["Meta Data"]
+    symbol_data = meta_data["2. Symbol"]
+    monthly_time_series = data["Monthly Time Series"]
 
-monthly_time_series = data["Monthly Time Series"] # Access the time within the data object
-for date, stock_data in monthly_time_series.items():
-    monthly_open_data = stock_data["1. open"]  # Access the open price for each data object, float() function is used as the data in a string
-    monthly_high_data = stock_data["2. high"]  # Access the high price for each data object
-    monthly_low_data = stock_data["3. low"]  # Access the low price for each data object
-    monthly_volume_data = stock_data["5. volume"]
+    # Loop over each date and stock data for the symbol
+    for date, stock_data in monthly_time_series.items():
+        monthly_open_data = stock_data["1. open"]
+        monthly_high_data = stock_data["2. high"]
+        monthly_low_data = stock_data["3. low"]
+        monthly_volume_data = stock_data["5. volume"]
 
-cursor.execute('''
-    INSERT INTO stock_data (symbol,date, monthly_open, monthly_high, monthly_low, monthly_volume)
-    VALUES (?, ?, ?, ?, ?, ?)
-    ''', ( symbol, date, monthly_open_data, monthly_high_data, monthly_low_data, monthly_volume_data)
-    )
+        # Insert the data into the database
+        cursor.execute('''
+            INSERT INTO stock_data (symbol, date, monthly_open, monthly_high, monthly_low, monthly_volume)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (symbol_data, date, monthly_open_data, monthly_high_data, monthly_low_data, monthly_volume_data))
+
+# Execute a SELECT query to retrieve data from the table
+cursor.execute('SELECT * FROM stock_data')
+
+# Fetch all rows returned by the query
+rows = cursor.fetchall()
+
+# Define the CSV file path
+csv_file_path = 'stock_data.csv'
+
+# Open the CSV file in write mode
+with open(csv_file_path, 'w', newline='') as csv_file:
+    # Create a CSV writer object
+    csv_writer = csv.writer(csv_file)
+
+    # Write the header row
+    csv_writer.writerow(['symbol', 'date', 'monthly_open', 'monthly_high', 'monthly_low', 'monthly_volume'])
+
+    # Write the data rows
+    csv_writer.writerows(rows)
+
+print(f'Stock data exported to {csv_file_path}')
 
 # Commit the changes to the database and close the connection
 conn.commit()
