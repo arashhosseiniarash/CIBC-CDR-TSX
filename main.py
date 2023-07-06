@@ -1,6 +1,7 @@
-import sqlite3
-import requests
-import csv
+import sqlite3 # For database
+import requests #For HTTP requests in Python
+import csv # For CSV functionalities
+import matplotlib.pyplot as plt # For chart visualization
 
 # Establish a connection to the SQLite database
 conn = sqlite3.connect('stock_market_one_month.db')
@@ -54,6 +55,36 @@ cursor.execute('SELECT * FROM stock_data')
 # Fetch all rows returned by the query
 rows = cursor.fetchall()
 
+# Separate the values into lists for Matplotlib
+dates = []
+opens = []
+highs = []
+lows = []
+volumes = []
+
+for row in rows:
+    dates.append(row[2])  # Assuming the date column is at index 2
+    opens.append(row[3])  # Assuming the monthly_open column is at index 3
+    highs.append(row[4])  # Assuming the monthly_high column is at index 4
+    lows.append(row[5])  # Assuming the monthly_low column is at index 5
+    volumes.append(row[6])  # Assuming the monthly_volume column is at index 6
+
+# Commit the changes to the database and close the connection
+conn.commit()
+conn.close()
+
+# Plotting the data
+plt.figure(figsize=(12, 6))
+plt.plot(dates, opens, label='Monthly Open')
+plt.plot(dates, highs, label='Monthly High')
+plt.plot(dates, lows, label='Monthly Low')
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.title('Stock Market Data')
+plt.legend()
+plt.show()
+plt.savefig('stock_plot.png')
+
 # Define the CSV file path
 csv_file_path = 'stock_data.csv'
 
@@ -70,6 +101,3 @@ with open(csv_file_path, 'w', newline='') as csv_file:
 
 print(f'Stock data exported to {csv_file_path}')
 
-# Commit the changes to the database and close the connection
-conn.commit()
-conn.close()
