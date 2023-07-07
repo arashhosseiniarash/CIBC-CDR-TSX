@@ -94,7 +94,8 @@ with open(csv_file_path, 'w', newline='') as csv_file:
     csv_writer = csv.writer(csv_file)
 
     # Write the header row
-    csv_writer.writerow(['symbol', 'date', 'monthly_open', 'monthly_high', 'monthly_low', 'monthly_volume'])
+    csv_writer.writerow(['sl_number','symbol', 'date', 'monthly_open', 'monthly_high', 'monthly_low', 'monthly_volume'])
+
 
     # Write the data rows
     csv_writer.writerows(rows)
