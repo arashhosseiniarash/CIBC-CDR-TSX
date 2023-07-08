@@ -2,6 +2,8 @@ import sqlite3 # For database
 import requests #For HTTP requests in Python
 import csv # For CSV functionalities
 import matplotlib.pyplot as plt # For chart visualization
+import pandas as pd #For data manipulation and analysis
+
 
 # Establish a connection to the SQLite database
 conn = sqlite3.connect('stock_market_one_month.db')
@@ -75,13 +77,17 @@ conn.close()
 
 # Plotting the data
 plt.figure(figsize=(12, 6))
-plt.plot(dates, opens, label='Monthly Open')
-plt.plot(dates, highs, label='Monthly High')
-plt.plot(dates, lows, label='Monthly Low')
+#plt.plot(dates, opens, label='Monthly Open')
+plt.plot(dates, highs, label='Monthly High (IBM)', color='blue')  # Set the color for IBM data
+plt.plot(dates, lows, label='Monthly High (MSFT)', color='red')  # Set the color for MSFT data
+#plt.plot(dates, lows, label='Monthly Low')
 plt.xlabel('Date')
 plt.ylabel('Price')
 plt.title('Stock Market Data')
 plt.legend()
+# Add text labels to the chart lines
+plt.text(dates[-1], highs[-1], 'IBM', color='blue', ha='right', va='center')
+plt.text(dates[-1], lows[-1], 'MSFT', color='red', ha='right', va='center')
 plt.show()
 plt.savefig('stock_plot.png')
 
@@ -94,7 +100,7 @@ with open(csv_file_path, 'w', newline='') as csv_file:
     csv_writer = csv.writer(csv_file)
 
     # Write the header row
-    csv_writer.writerow(['sl_number','symbol', 'date', 'monthly_open', 'monthly_high', 'monthly_low', 'monthly_volume'])
+    csv_writer.writerow(['id','symbol', 'date', 'monthly_open', 'monthly_high', 'monthly_low', 'monthly_volume'])
 
 
     # Write the data rows
@@ -102,3 +108,17 @@ with open(csv_file_path, 'w', newline='') as csv_file:
 
 print(f'Stock data exported to {csv_file_path}')
 
+# Analysing the dataset using pandas through the CSV created
+df = pd.read_csv('stock_data.csv')
+
+# Display the first few rows of the DataFrame
+print(df.head(10))
+
+# Get summary statistics of the DataFrame
+print(df.describe())
+
+# Check the data types of each column
+print(df.dtypes)
+
+# Check the number of rows and columns in the DataFrame
+print(df.shape)
