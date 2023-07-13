@@ -3,7 +3,7 @@ import requests #For HTTP requests in Python
 import csv # For CSV functionalities
 import matplotlib.pyplot as plt # For chart visualization
 import pandas as pd #For data manipulation and analysis
-
+import datetime
 
 # Establish a connection to the SQLite database
 conn = sqlite3.connect('stock_market_one_month.db')
@@ -75,22 +75,6 @@ for row in rows:
 conn.commit()
 conn.close()
 
-# Plotting the data
-plt.figure(figsize=(12, 6))
-#plt.plot(dates, opens, label='Monthly Open')
-plt.plot(dates, highs, label='Monthly High (IBM)', color='blue')  # Set the color for IBM data
-plt.plot(dates, lows, label='Monthly High (MSFT)', color='red')  # Set the color for MSFT data
-#plt.plot(dates, lows, label='Monthly Low')
-plt.xlabel('Date')
-plt.ylabel('Price')
-plt.title('Stock Market Data')
-plt.legend()
-# Add text labels to the chart lines
-plt.text(dates[-1], highs[-1], 'IBM', color='blue', ha='right', va='center')
-plt.text(dates[-1], lows[-1], 'MSFT', color='red', ha='right', va='center')
-plt.show()
-plt.savefig('stock_plot.png')
-
 # Define the CSV file path
 csv_file_path = 'stock_data.csv'
 
@@ -122,3 +106,45 @@ print(df.dtypes)
 
 # Check the number of rows and columns in the DataFrame
 print(df.shape)
+
+# Convert the "date" column to datetime format
+df['date'] = pd.to_datetime(df['date'])
+
+# Find the minimum and maximum dates
+min_date = df['date'].min()
+max_date = df['date'].max()
+
+# Print the results
+print(f"Minimum date: {min_date}")
+print(f"Maximum date: {max_date}")
+
+# Plotting the data
+plt.figure(figsize=(12, 6))
+
+
+
+# Set the desired minimum and maximum dates
+min_date = datetime.datetime.strptime("2020-01-01", "%Y-%m-%d")
+max_date = datetime.datetime.strptime("2023-01-01", "%Y-%m-%d")
+
+# Filter the dates and corresponding data within the specified range
+filtered_dates = []
+filtered_highs = []
+filtered_lows = []
+for date, high, low in zip(dates, highs, lows):
+    date = datetime.datetime.strptime(date, "%Y-%m-%d")  # Convert date string to datetime object
+    if min_date <= date <= max_date:
+        filtered_dates.append(date)
+        filtered_highs.append(high)
+        filtered_lows.append(low)
+
+# Plotting the data
+plt.plot(filtered_dates, filtered_highs, label='Monthly High (IBM)', color='blue')  # Set the color for IBM data
+plt.plot(filtered_dates, filtered_lows, label='Monthly High (MSFT)', color='red')  # Set the color for MSFT data
+
+# Set the x-axis limits to specify the date range
+plt.xlim(min_date, max_date)
+
+plt.show()
+plt.savefig('stock_plot.png')
+
