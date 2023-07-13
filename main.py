@@ -95,6 +95,17 @@ print(f'Stock data exported to {csv_file_path}')
 # Analysing the dataset using pandas through the CSV created
 df = pd.read_csv('stock_data.csv')
 
+# Analyzing the dataset using pandas through the CSV created
+df = pd.read_csv('stock_data.csv')
+
+# Check for duplicate entries
+date_counts = df.groupby('date').size()
+duplicate_dates = date_counts[date_counts > 1]
+if not duplicate_dates.empty:
+    print("Duplicate entries found for the following dates:")
+    print(duplicate_dates)
+
+
 # Display the first few rows of the DataFrame
 print(df.head(10))
 
@@ -121,8 +132,6 @@ print(f"Maximum date: {max_date}")
 # Plotting the data
 plt.figure(figsize=(12, 6))
 
-
-
 # Set the desired minimum and maximum dates
 min_date = datetime.datetime.strptime("2020-01-01", "%Y-%m-%d")
 max_date = datetime.datetime.strptime("2023-01-01", "%Y-%m-%d")
@@ -131,20 +140,34 @@ max_date = datetime.datetime.strptime("2023-01-01", "%Y-%m-%d")
 filtered_dates = []
 filtered_highs = []
 filtered_lows = []
+
+# Remove duplicates from dates and corresponding values
+unique_dates = []
+unique_highs = []
+unique_lows = []
+
 for date, high, low in zip(dates, highs, lows):
     date = datetime.datetime.strptime(date, "%Y-%m-%d")  # Convert date string to datetime object
     if min_date <= date <= max_date:
-        filtered_dates.append(date)
-        filtered_highs.append(high)
-        filtered_lows.append(low)
+        if date not in unique_dates:  # Check for duplicate dates
+            filtered_dates.append(date)
+            filtered_highs.append(high)
+            filtered_lows.append(low)
+            unique_dates.append(date)
 
-# Plotting the data
-plt.plot(filtered_dates, filtered_highs, label='Monthly High (IBM)', color='blue')  # Set the color for IBM data
-plt.plot(filtered_dates, filtered_lows, label='Monthly High (MSFT)', color='red')  # Set the color for MSFT data
+# Plotting the high values
+plt.plot(filtered_dates, filtered_highs, label='Monthly High', color='blue', linestyle='-', marker='o')
+
+# Plotting the low values
+plt.plot(filtered_dates, filtered_lows, label='Monthly Low', color='red', linestyle='-', marker='o')
+
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.title('Stock Market Data')
+plt.legend()
 
 # Set the x-axis limits to specify the date range
 plt.xlim(min_date, max_date)
 
 plt.show()
 plt.savefig('stock_plot.png')
-
